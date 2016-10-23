@@ -16,13 +16,15 @@ def GPIOLibraryVersion():
 
 # Ready to send - true when signal low.
 # if true: Data can be received via UART
-# else: UART buffer full or wireless reception of a telegram detected. Data coming via UART ignored.
+# else: UART buffer full. Data coming via UART ignored.
 def RTS():
     return GPIO.input(11) == 0
 
+# Data indication - true when signal low.
+# if true: Something has been received.
+# else: Nothing received. TODO: Validate this stuff, not 100% sure if this is true.
 def DATA_INDICATE():
-    if GPIO.input(13) == 0:
-        return  # TODO: FINISH THIS SHIT!!
+    return GPIO.input(13) == 0
 
 # Not really a radio helper but oh well.
 def fastblink(pin):
@@ -45,7 +47,8 @@ def SetRadioPins():
     # TRX-DISABLE pin
     GPIO.setup(5, GPIO.OUT, initial=GPIO.LOW)
     # CONFIG pin
-    # Only for entering command mode. Must go high-low to activate command mode. Do not touch.
+    # Only for entering command mode.
+    # Must go high-low(falling edge) to activate command mode. Do not touch command mode.
     GPIO.setup(7, GPIO.OUT, initial=GPIO.LOW)
     # DATA_REQUEST pin
     GPIO.setup(15, GPIO.OUT, initial=GPIO.LOW)

@@ -6,10 +6,8 @@ import time
 import RadioModuleHelpers as radioHelper
 workingOnRaspberry = False
 if workingOnRaspberry:
-    import RPi.GPIO as GPIO
     import serial as serial
 else:
-    import Mock.GPIO as GPIO
     import Mock.serial as serial
 
 
@@ -37,7 +35,8 @@ def readlineCR(serialPort):
             return rv
 
 print("Opening serial port")
-port = serial.Serial("/dev/ttyAMA0", baudrate=9600, timeout=3.0)    #AMB8420 default baud rate.
+#AMB8420 default baud rate = 9600.
+port = serial.Serial("/dev/ttyAMA0", baudrate=9600, timeout=3.0)
 
 print("Setting radio pins")
 radioHelper.SetRadioPins()
@@ -45,15 +44,16 @@ print("Resetting radio")
 radioHelper.ResetRadio()
 
 print("Polling radio")
+# TODO: Check if receive and send variables are really needed here.
 while True:
     try:
-        if radioHelper.RTS() and GPIO.input(13) == 1 and receive == 0 and send == 0:
+        if radioHelper.RTS() and not radioHelper.DATA_INDICATE() and receive == 0 and send == 0:
             if debug:
                 print("Nothing happens")
             port.write("\r\nSay something:")
             send = 1
             time.sleep(1.0/100.0)
-        elif radioHelper.RTS() and GPIO.input(13) == 0 and receive == 1:
+        elif radioHelper.RTS() and radioHelper.DATA_INDICATE() and receive == 1:
             if debug:
                 print("something received")
             rcv = readlineCR(port)
@@ -61,11 +61,12 @@ while True:
             receive = 0
             send = 0
             time.sleep(1.0/100.0)
-        elif not radioHelper.RTS() and GPIO.input(13) == 1:
+        elif not radioHelper.RTS() and not radioHelper.DATA_INDICATE():
             if debug:
                 print("UART buffer full")
             send = 1
             time.sleep(1.0/100.0)
+        # This is pretty much the last possible one - not RTS and DATA_INDICATE
         else:
             if debug:
                 print("something received, but UART buffer full")
