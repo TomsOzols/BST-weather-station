@@ -2,7 +2,7 @@
 # pylint: disable=C0111
 import time
 
-workingOnRaspberry = False
+workingOnRaspberry = True
 if workingOnRaspberry:
     import RPi.GPIO as GPIO
 else:
