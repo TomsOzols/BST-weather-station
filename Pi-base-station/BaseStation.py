@@ -39,28 +39,32 @@ print("Resetting radio")
 radioHelper.ResetRadio()
 
 print("Polling radio")
+
+actionSleepTime = 1.0/100.0
 while True:
     try:
-        if radioHelper.RTS() and not radioHelper.DATA_INDICATE():
+        readyToSend = radioHelper.RTS()
+        dataIndicate = radioHelper.DATA_INDICATE()
+        print("RTS: " + str(readyToSend))
+        print("Data indicate: " + str(dataIndicate))
+
+        if readyToSend and not dataIndicate:
             if debug:
                 print("Nothing happens")
             port.write("\r\nSay something:")
-            time.sleep(1.0/100.0)
-        elif radioHelper.RTS() and radioHelper.DATA_INDICATE():
+        elif readyToSend and dataIndicate:
             if debug:
                 print("something received")
             rcv = readlineCR(port)
             print(repr(rcv))
-            time.sleep(1.0/100.0)
-        elif not radioHelper.RTS() and not radioHelper.DATA_INDICATE():
+        elif not readyToSend and not dataIndicate:
             if debug:
                 print("UART buffer full")
-            time.sleep(1.0/100.0)
         # This is pretty much the last possible one - not RTS and DATA_INDICATE
         else:
             if debug:
                 print("something received, but UART buffer full")
-            time.sleep(1.0/100.0)
+        time.sleep(actionSleepTime)
     except KeyboardInterrupt: #Ctrl-c
         break
 
