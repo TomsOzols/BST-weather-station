@@ -4,7 +4,7 @@
 import time
 
 import RadioModuleHelpers as radioHelper
-workingOnRaspberry = False
+workingOnRaspberry = True
 if workingOnRaspberry:
     import serial as serial
 else:
