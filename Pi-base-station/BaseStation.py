@@ -44,7 +44,7 @@ actionSleepTime = 1.0/100.0
 while True:
     try:
         readyToSend = radioHelper.RTS()
-        dataIndicate = radioHelper.DATA_INDICATE()
+        dataIndicate = radioHelper.DATA_INDICATE()  #The data indicate pin readings need to be inverted.
         print("RTS: " + str(readyToSend))
         print("Data indicate: " + str(dataIndicate))
 
