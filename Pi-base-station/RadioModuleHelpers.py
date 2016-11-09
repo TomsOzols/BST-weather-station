@@ -24,7 +24,7 @@ def RTS():
 # if true: Something has been received.
 # else: Nothing received. TODO: Validate this stuff, not 100% sure if this is true.
 def DATA_INDICATE():
-    return GPIO.input(13) == 0
+    return GPIO.input(13) == 1
 
 # Not really a radio helper but oh well.
 def fastblink(pin):
