@@ -4,6 +4,7 @@
 import time
 
 import RadioModuleHelpers as radioHelper
+import MeasurementService as measurementService
 workingOnRaspberry = True
 if workingOnRaspberry:
     import serial as serial
@@ -33,6 +34,8 @@ print("Opening serial port")
 #AMB8420 default baud rate = 9600..
 port = serial.Serial("/dev/ttyAMA0", baudrate=9600, timeout=3.0)
 
+print("Setting up the measurement services")
+measurementService.Setup()
 print("Setting radio pins")
 radioHelper.SetRadioPins()
 print("Resetting radio")
@@ -43,27 +46,18 @@ print("Polling radio")
 actionSleepTime = 1.0/100.0
 while True:
     try:
+        # Left in for extra debug purposes. Should remove as soon as possible.
         readyToSend = radioHelper.RTS()
         dataIndicate = radioHelper.DATA_INDICATE()
         print("RTS: " + str(readyToSend))
         print("Data indicate: " + str(dataIndicate))
+        # Up till here.
 
-        if readyToSend and not dataIndicate:
-            if debug:
-                print("Nothing happens")
-            port.write("\r\nSay something:")
-        elif readyToSend and dataIndicate:
-            if debug:
-                print("something received")
-            rcv = readlineCR(port)
+        rcv = readlineCR(port)
+        if debug:
             print(repr(rcv))
-        elif not readyToSend and not dataIndicate:
-            if debug:
-                print("UART buffer full")
-        # This is pretty much the last possible one - not RTS and DATA_INDICATE
-        else:
-            if debug:
-                print("something received, but UART buffer full")
+
+        measurementService.ProcessMeasurements(rcv)
         time.sleep(actionSleepTime)
     except KeyboardInterrupt: #Ctrl-c
         break
