@@ -13,9 +13,14 @@ def Setup():
         f.close()
 
 def ProcessMeasurements(measurements):
-    measurementJson = json.loads(measurements)
-    StoreMeasurementsOnSystem(measurementJson)
-    SendMeasurementsToApi(measurementJson)
+    measurementJson = None
+    try:
+        measurementJson = json.loads(measurements)
+    except:
+        print("Measurements not in a json format")
+    if measurementJson:
+        StoreMeasurementsOnSystem(measurementJson)
+        SendMeasurementsToApi(measurementJson)
 
 def StoreMeasurementsOnSystem(measurementJson):
     print("Storing measurements locally")
