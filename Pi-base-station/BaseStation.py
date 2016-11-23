@@ -38,12 +38,21 @@ print("Setting up the measurement services")
 measurementService.Setup()
 print("Setting radio pins")
 radioHelper.SetRadioPins()
+radioHelper.SetShutdownPin()
+
+
 print("Resetting radio")
 radioHelper.ResetRadio()
 
 print("Polling radio")
 
 actionSleepTime = 1.0/100.0
+
+while True:
+    radioHelper.InitiateShutdown()
+    time.sleep(3)
+    radioHelper.DELETEME()
+
 while True:
     try:
         # Left in for extra debug purposes. Should remove as soon as possible.
@@ -64,3 +73,4 @@ while True:
 
 print("Closing serial port and ending")
 port.close()
+

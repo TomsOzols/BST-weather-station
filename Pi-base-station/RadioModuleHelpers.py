@@ -41,6 +41,10 @@ def ResetRadio():
         fastblink(16)
     GPIO.output(12, GPIO.HIGH)
 
+def SetShutdownPin():
+    # Shutdown signal pin
+    GPIO.setup(16, GPIO.OUT, initial=GPIO.LOW)
+
 def SetRadioPins():
     # SLEEP pin
     GPIO.setup(3, GPIO.OUT, initial=GPIO.LOW)
@@ -64,3 +68,10 @@ def SetRadioPins():
 def ConfigureGPIOMode():
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
+
+def InitiateShutdown():
+    GPIO.output(16, GPIO.HIGH)
+
+def DELETEME():
+    GPIO.output(16, GPIO.LOW)
+    
