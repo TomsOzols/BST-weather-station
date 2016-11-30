@@ -71,7 +71,3 @@ def ConfigureGPIOMode():
 
 def InitiateShutdown():
     GPIO.output(16, GPIO.HIGH)
-
-def DELETEME():
-    GPIO.output(16, GPIO.LOW)
-    
