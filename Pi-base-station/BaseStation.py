@@ -15,6 +15,18 @@ else:
 
 debug = True
 
+def KillPi():
+    gpioFunctions.InitiateShutdown()
+    os.system('shutdown now -h')
+
+def readlineCR(serialPort):
+    rv = ""
+    while True:
+        ch = serialPort.read()
+        rv += ch
+        if ch == '\r' or ch == '':
+            return rv
+
 print("*****************************************")
 print("**           BASE STATION              **")
 print("*****************************************")
@@ -62,16 +74,3 @@ print("Closing serial port")
 port.close()
 print("Shut down")
 KillPi()
-
-def KillPi():
-    gpioFunctions.InitiateShutdown()
-    os.system('shutdown now -h')
-
-def readlineCR(serialPort):
-    rv = ""
-    while True:
-        ch = serialPort.read()
-        rv += ch
-        if ch == '\r' or ch == '':
-            return rv
-
