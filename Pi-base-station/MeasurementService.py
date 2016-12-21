@@ -2,30 +2,70 @@
 # pylint: disable=C0111
 
 import json
-import os
+# import os
+# import Database
+import PlotlyClient
 
 measurementFileName = "measurements"
+configurationFileName = "BSConfig.json"
+measurementTableFid = "measurementTableFid"
+plotlyUserName = "plotlyUserName"
 
-def Setup():
-    # If the file where to store the measurements does not exist, we create a new one.
-    if not os.path.exists(measurementFileName):
-        f = file(measurementFileName, "w+")
-        f.close()
+# def Setup():
+    # Database.InitiateDatabase()
 
-def ProcessMeasurements(measurements):
+def ProcessMeasurements(measurement):
     measurementJson = None
+    configuration = GetConfiguration()
+    configurationChanged = False
     try:
-        measurementJson = json.loads(measurements)
+        measurementJson = json.loads(measurement)
     except:
         print("Measurements not in a json format")
+
+    if not configuration[measurementTableFid]:
+        configuration[measurementTableFid] = CreateNewTableAndGetFid(configuration)
+        configurationChanged = True
+
     if measurementJson:
-        StoreMeasurementsOnSystem(measurementJson)
-        SendMeasurementsToApi(measurementJson)
+        # Database.InsertMeasurements(measurementJson)
 
-def StoreMeasurementsOnSystem(measurementJson):
-    print("Storing measurements locally")
-    with open(measurementFileName, "a") as measurementFile:
-        measurementFile.write(measurementJson)
+        # Should move this out.
+        plotlyJson = CreatePlotlyMeasurementRowJson(measurementJson)
+        try:
+            gridUrl = "{}:{}".format(configuration[plotlyUserName], configuration[measurementTableFid])
+            PlotlyClient.SendMeasurementsToApi(plotlyJson, gridUrl)
+        except:
+            newTableFid = CreateNewTableAndGetFid(configuration)
+            gridUrl = "{}:{}".format(configuration[plotlyUserName], newTableFid)
+            PlotlyClient.SendMeasurementsToApi(plotlyJson, newTableFid)
+            configuration[measurementTableFid] = newTableFid
+            configurationChanged = True
 
-def SendMeasurementsToApi(measurementJson):
-    print("Sending measurements to the api")
+    if configurationChanged:
+        WriteToConfigurationFile(configuration)
+
+def CreateNewTableAndGetFid(configuration):
+    newTableFid = PlotlyClient.CreateMeasurementTable()
+    configuration[measurementTableFid] = newTableFid
+    WriteToConfigurationFile(configuration)
+    return newTableFid
+
+def GetConfiguration():
+    with open(configurationFileName) as configFile:
+        return json.load(configFile)
+
+def WriteToConfigurationFile(configuration):
+    with open(configurationFileName, 'w') as outfile:
+        json.dump(configuration, outfile)
+
+def CreatePlotlyMeasurementRowJson(measurement):
+    return {
+        "rows":[
+            [measurement["temperature"]],
+            [measurement["humidity"]],
+            [measurement["windDirection"]],
+            [measurement["windSpeed"]],
+            [measurement["rain"]]
+        ]
+    }

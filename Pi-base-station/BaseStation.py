@@ -41,7 +41,7 @@ print("Opening serial port")
 port = serial.Serial("/dev/ttyAMA0", baudrate=9600, timeout=3.0)
 
 print("Setting up the measurement services")
-measurementService.Setup()
+# measurementService.Setup()
 print("Setting radio pins")
 gpioFunctions.SetRadioPins()
 gpioFunctions.SetShutdownPin() # Pain in the ass (or as some might say - pin in the ass)
@@ -51,26 +51,32 @@ gpioFunctions.ResetRadio()
 
 print("Polling radio")
 
-actionSleepTime = 1.0/100.0
-while True:
-    try:
-        # Left in for extra debug purposes. Should remove as soon as possible.
-        readyToSend = gpioFunctions.RTS()
-        dataIndicate = gpioFunctions.DATA_INDICATE()
-        print("RTS: " + str(readyToSend))
-        print("Data indicate: " + str(dataIndicate))
-        # Up till here.
+if True:
+    example = '{"temperature": 15.6,"humidity": 45,"windDirection": 2,"windSpeed": 32,"rain": 13}'
 
-        rcv = readlineCR(port)
-        if debug:
-            print(repr(rcv))
+    measurementService.ProcessMeasurements(example)
 
-        measurementService.ProcessMeasurements(rcv)
-        time.sleep(actionSleepTime)
-    except KeyboardInterrupt: #Ctrl-c
-        break
+else:
+    actionSleepTime = 1.0/100.0
+    while True:
+        try:
+            # Left in for extra debug purposes. Should remove as soon as possible.
+            readyToSend = gpioFunctions.RTS()
+            dataIndicate = gpioFunctions.DATA_INDICATE()
+            print("RTS: " + str(readyToSend))
+            print("Data indicate: " + str(dataIndicate))
+            # Up till here.
 
-print("Closing serial port")
-port.close()
-print("Shut down")
-KillPi()
+            rcv = readlineCR(port)
+            if debug:
+                print(repr(rcv))
+
+            measurementService.ProcessMeasurements(rcv)
+            time.sleep(actionSleepTime)
+        except KeyboardInterrupt: #Ctrl-c
+            break
+
+    print("Closing serial port")
+    port.close()
+    print("Shut down")
+    KillPi()
