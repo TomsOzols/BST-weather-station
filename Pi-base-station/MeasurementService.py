@@ -2,17 +2,15 @@
 # pylint: disable=C0111
 
 import json
-# import os
-# import Database
+import Database
 import PlotlyClient
 
-measurementFileName = "measurements"
 configurationFileName = "BSConfig.json"
 measurementTableFid = "measurementTableFid"
 plotlyUserName = "plotlyUserName"
 
-# def Setup():
-    # Database.InitiateDatabase()
+def Setup():
+    Database.InitiateDatabase()
 
 def ProcessMeasurements(measurement):
     measurementJson = None
@@ -28,17 +26,19 @@ def ProcessMeasurements(measurement):
         configurationChanged = True
 
     if measurementJson:
-        # Database.InsertMeasurements(measurementJson)
+        sqlLiteTuples = CreateSQLLiteTupleList(measurementJson)
+        Database.InsertMeasurements(sqlLiteTuples)
 
         # Should move this out.
-        plotlyJson = CreatePlotlyMeasurementRowJson(measurementJson)
+        plotlyJson = CreatePlotlyMeasurementRowsJson(measurementJson)
         try:
             gridUrl = "{}:{}".format(configuration[plotlyUserName], configuration[measurementTableFid])
             PlotlyClient.SendMeasurementsToApi(plotlyJson, gridUrl)
         except:
-            newTableFid = CreateNewTableAndGetFid(configuration)
+            userNameAndFid = CreateNewTableAndGetFid(configuration) # Cause plotly rest sucks
+            newTableFid = userNameAndFid.split(":")[1]
             gridUrl = "{}:{}".format(configuration[plotlyUserName], newTableFid)
-            PlotlyClient.SendMeasurementsToApi(plotlyJson, newTableFid)
+            PlotlyClient.SendMeasurementsToApi(plotlyJson, gridUrl) # Could've sent the measurement on table creation. Dont wanna arse myself for now.
             configuration[measurementTableFid] = newTableFid
             configurationChanged = True
 
@@ -59,13 +59,30 @@ def WriteToConfigurationFile(configuration):
     with open(configurationFileName, 'w') as outfile:
         json.dump(configuration, outfile)
 
-def CreatePlotlyMeasurementRowJson(measurement):
+temperature = "temperature"
+humidity = "humidity"
+windDirection = "windDirection"
+windSpeed = "windSpeed"
+rain = "rain"
+
+
+def CreatePlotlyMeasurementRow(measurement):
+    return [measurement[temperature], measurement[humidity], measurement[windDirection], measurement[windSpeed], measurement[rain]]
+
+def CreatePlotlyMeasurementRowsJson(measurements):
+    measurementRows = [CreatePlotlyMeasurementRow(measurement) for measurement in measurements]
+
     return {
-        "rows":[
-            [measurement["temperature"]],
-            [measurement["humidity"]],
-            [measurement["windDirection"]],
-            [measurement["windSpeed"]],
-            [measurement["rain"]]
-        ]
+        "rows": measurementRows
     }
+
+def CreateSQLLiteTupleList(measurements):
+    return [CreateSQLLiteTuple(measurement) for measurement in measurements]
+
+def CreateSQLLiteTuple(measurement):
+    return (
+        measurement[temperature],
+        measurement[humidity],
+        measurement[windDirection],
+        measurement[windSpeed],
+        measurement[rain])

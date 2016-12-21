@@ -41,7 +41,7 @@ print("Opening serial port")
 port = serial.Serial("/dev/ttyAMA0", baudrate=9600, timeout=3.0)
 
 print("Setting up the measurement services")
-# measurementService.Setup()
+measurementService.Setup()
 print("Setting radio pins")
 gpioFunctions.SetRadioPins()
 gpioFunctions.SetShutdownPin() # Pain in the ass (or as some might say - pin in the ass)
@@ -52,7 +52,7 @@ gpioFunctions.ResetRadio()
 print("Polling radio")
 
 if True:
-    example = '{"temperature": 15.6,"humidity": 45,"windDirection": 2,"windSpeed": 32,"rain": 13}'
+    example = '[{"temperature": 15.6,"humidity": 45,"windDirection": 2,"windSpeed": 32,"rain": 13}, {"temperature": 33,"humidity": 22,"windDirection": 5,"windSpeed": 43,"rain": 11}]'
 
     measurementService.ProcessMeasurements(example)
 

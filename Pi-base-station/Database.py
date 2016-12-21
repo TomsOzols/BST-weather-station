@@ -3,27 +3,45 @@
 
 import sqlite3 as database
 
+temperature = ("REAL", "temperature")
+humidity = ("REAL", "humidity")
+windDirection = ("INT", "windDirection")
+windSpeed = ("REAL", "windSpeed")
+rain = ("REAL", "rain")
+
 measurementTableName = "Measurement"
-connection = InitiateDatabase()
+databaseName = "measurements.db"
 
 def InitiateDatabase():
-    connectionObject = database.connect("measurements.db")
+    connectionObject = database.connect(databaseName)
     CreateMeasurementTableIfNotExist(connectionObject)
-    return connectionObject
 
 def CreateMeasurementTableIfNotExist(connectionObject):
     with connectionObject:
-        current = connectionObject.cursor()
-        current.execute("SELECT name FROM sqlite_master WHERE type='table'")
-        tableNames = current.fetchall()
-        measurementTableExists = any(table == measurementTableName for table in tableNames)
-        if not measurementTableExists:
-            # finish writing the table creation by defining the data types being stored.
-            current.execute("CREATE TABLE " + measurementTableName + "(Id INTEGER PRIMARY KEY AUTOINCREMENT, )")
+        databaseContext = connectionObject.cursor()
+        dataColumns = "{},{},{},{},{}".format(
+            GetColumnDefinition(temperature),
+            GetColumnDefinition(humidity),
+            GetColumnDefinition(windDirection),
+            GetColumnDefinition(windSpeed),
+            GetColumnDefinition(rain))
+
+        allColumns = "(Id INTEGER PRIMARY KEY AUTOINCREMENT, {})".format(dataColumns)
+        query = "CREATE TABLE IF NOT EXISTS {} {}".format(measurementTableName, allColumns)
+        databaseContext.execute(query)
+
+def GetColumnDefinition(tuple):
+    return "{} {}".format(tuple[1], tuple[0])
 
 def InsertMeasurements(measurements):
+    # columns = "{},{},{},{},{}".format(temperature[1], humidity[1], windDirection[1], windSpeed[1], rain[1]
+    # columnValues = "VALUES({})".format(columns)
+
+    tableDefinition = "({}, {}, {}, {}, {})".format(temperature[1], humidity[1], windDirection[1], windSpeed[1], rain[1])
+    columnValues = "VALUES({})".format("?, ?, ?, ?, ?")
+    connection = database.connect(databaseName)
     with connection:
-        current = connection.cursor()
-        # finish writing the insert value definitions
-        current.executemany("INSERT INTO " + measurementTableName + "VALUES()", measurements)
+        databaseContext = connection.cursor()
+        databaseContext.executemany("INSERT INTO {} {} {}".format(measurementTableName, tableDefinition, columnValues), measurements)
+        # databaseContext.executemany("INSERT INTO {} {}".format(measurementTableName, columnValues), measurements)
         

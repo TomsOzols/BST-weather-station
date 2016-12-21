@@ -47,16 +47,11 @@ staticTable = {
 def SendMeasurementsToApi(rows, tableUrl):
     requestUrl = "{}/{}/{}/row".format(plotlyApiBaseUrl, gridApiUrl, tableUrl)
     request = requests.post(requestUrl, auth=auth, headers=headers, json=rows)
-    if request.status_code == 404:
+    if not (request.status_code == 201):
         raise Exception("Missing grid: {}".format(tableUrl))
-    print(request.text)
 
 def CreateMeasurementTable():
     requestUrl = "{}/{}".format(plotlyApiBaseUrl, gridApiUrl)
-    print(requestUrl)
-    print(auth)
-    print(headers)
-    print(staticTable)
     request = requests.post(requestUrl, auth=auth, headers=headers, json=staticTable)
-    print(request.text)
-    return json.loads(request.text)
+    responseContent = json.loads(request.text)
+    return responseContent["file"]["fid"]
